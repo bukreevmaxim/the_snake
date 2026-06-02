@@ -57,7 +57,7 @@ class Apple(GameObject):
         x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
         y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
         self.position = (x, y)
-
+        
     def draw(self):
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_colour, rect)
@@ -67,7 +67,6 @@ class Snake(GameObject):
     def __init__(self, position):
         super().__init__(SNAKE_COLOR)
         self.position = position
-
 
         self.length = 1
         self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
@@ -108,6 +107,9 @@ class Snake(GameObject):
         #Если змейка ест яблоко.
         if new_head == apple_position:
             self.length +=1
+
+            if len(self.positions) > 1:
+                self.last = self.positions[-1]
         else:
             self.last = self.positions[-1] 
             self.positions.pop(-1)
@@ -163,7 +165,7 @@ def main():
 
         if not snake.move(apple.position):
             break
-            
+        
         screen.fill(BOARD_BACKGROUND_COLOR) 
         apple.draw()  
         snake.draw()  
