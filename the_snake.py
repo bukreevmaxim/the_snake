@@ -3,7 +3,7 @@ from random import randint
 import pygame
 
 # Константы для размеров поля и сетки:
-SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
+SCREEN_WIDTH, SCREEN_HEIGHT = 400, 400
 GRID_SIZE = 20
 GRID_WIDTH = SCREEN_WIDTH // GRID_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
@@ -28,6 +28,9 @@ SNAKE_COLOR = (0, 255, 0)
 
 # Цвет камня
 STONE_COLOR = (0, 0, 0)
+
+# Цвет яда
+POISON_COLOR = (0, 0, 255)
 
 # Скорость движения змейки:
 SPEED = 5
@@ -89,6 +92,26 @@ class Apple(GameObject):
 
     def draw(self):
         """Рисует яблоко в виде квадрата"""
+        rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
+        pygame.draw.rect(screen, self.body_color, rect)
+        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+
+
+class Poison(GameObject):
+    """Класс предмета уменьшающего скорость и размер змейки при поедании"""
+
+    def __init__(self):
+        super().__init__(POISON_COLOR)
+        self.randomize_position()
+
+    def randomize_position(self):
+        """Выдаёт случайные координаты для спавна яда"""
+        x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
+        y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
+        self.position = (x, y)
+
+    def draw(self):
+        """Рисует яд в виде квадрата"""
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, rect)
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
@@ -182,7 +205,7 @@ class Snake(GameObject):
         # Отрисовка головы змейки
         head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, head_rect)
-        pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
+        pygame.draw.rect(screen, BORDER_COLOR, head_rect, 5)
 
         # Затирание последнего сегмента
         if self.last:
@@ -211,11 +234,13 @@ def main():
     apple = Apple()
     snake = Snake()
     stone = Stone()
+    poison = Poison()
 
     def game_over():
         snake.reset()
         apple.randomize_position()
         stone.randomize_position()
+        poison.randomize_position()
         snake.speed = SPEED
 
     while True:
@@ -229,16 +254,28 @@ def main():
             snake.speed += 0.3
             apple.randomize_position()
 
+        if snake.get_head_position() == poison.position:
+            snake.length -= 1
+            snake.speed -= 0.3
+            poison.randomize_position()
+
+        if snake.length < 1:
+            game_over()
+
         if snake.get_head_position() == stone.position:
             game_over()
 
         if snake.get_head_position() in snake.positions[1:]:
             game_over()
 
+        if apple.randomize_position in snake.positions:
+            apple.randomize_position()
+
         screen.fill(BOARD_BACKGROUND_COLOR)
         stone.draw()
         apple.draw()
         snake.draw()
+        poison.draw()
         pygame.display.update()
 
 
