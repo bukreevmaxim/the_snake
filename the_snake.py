@@ -185,7 +185,6 @@ class Snake(GameObject):
         if len(self.positions) > self.length:
             self.last = self.positions[-1]
             del self.positions[-1]
-        
 
     def reset(self):
         """Сброс настроек змейки к начальному состоянию"""
@@ -249,17 +248,18 @@ def main():
         handle_keys(snake)
         snake.update_direction()
         snake.move()
-        
+
         if snake.get_head_position() == apple.position:
             snake.length += 1
             snake.speed += 0.5
             apple.randomize_position()
 
         if snake.get_head_position() == poison.position:
-            snake.length -= 1
             snake.speed -= 0.5
+            if snake.speed < 3:
+                game_over()
             poison.randomize_position()
-            
+
         if snake.length < 1:
             game_over()
 
@@ -268,11 +268,6 @@ def main():
 
         if snake.get_head_position() in snake.positions[1:]:
             game_over()
-
-        if apple.position in snake.positions:
-            apple.randomize_position()
-        if apple.randomize_position == stone.position:
-            apple.randomize_position()
 
         screen.fill(BOARD_BACKGROUND_COLOR)
         stone.draw()
