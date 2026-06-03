@@ -26,6 +26,9 @@ APPLE_COLOR = (255, 0, 0)
 # Цвет змейки
 SNAKE_COLOR = (0, 255, 0)
 
+# Цвет камня
+STONE_COLOR = (0, 0, 0)
+
 # Скорость движения змейки:
 SPEED = 5
 
@@ -37,6 +40,9 @@ pygame.display.set_caption('Змейка')
 
 # Настройка времени:
 clock = pygame.time.Clock()
+
+
+
 
 def handle_keys(game_object):
     for event in pygame.event.get():
@@ -78,6 +84,23 @@ class Apple(GameObject):
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, rect)
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+
+class Stone(GameObject):
+    def __init__(self):
+        super().__init__(STONE_COLOR)
+        self.randomize_position()
+        
+    def randomize_position(self):
+        x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
+        y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
+        self.position = (x, y)
+            
+    def draw(self):
+        rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
+        pygame.draw.rect(screen, self.body_color, rect)
+        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+
+
 
 class Snake(GameObject):
     def __init__(self):
@@ -163,32 +186,39 @@ class Snake(GameObject):
             self.next_direction = None
 
 def main():
-    # Инициализация PyGame:
+
     pygame.init()
-    # Тут нужно создать экземпляры классов.
     apple = Apple()
     snake = Snake()
+    stone = Stone()
+    def game_over():
+        snake.reset()
+        apple.randomize_position()
+        stone.randomize_position()
+        snake.speed = SPEED
+
 
     while True:
         clock.tick(snake.speed)
         handle_keys(snake)
-        snake.update_direction()  # Применяем выбранное направление
+        snake.update_direction()
         snake.move()
 
         if snake.get_head_position() == apple.position:
             snake.length += 1
-            snake.speed += 0.5
+            snake.speed += 0.3
             apple.randomize_position()
         
+        if snake.get_head_position() == stone.position:
+            game_over()
        
 
         if snake.get_head_position() in snake.positions[1:]:
-            screen.fill(BOARD_BACKGROUND_COLOR)
-            snake.reset()
-            apple.randomize_position()
+            game_over()
 
 
         screen.fill(BOARD_BACKGROUND_COLOR)
+        stone.draw()
         apple.draw()
         snake.draw()
         pygame.display.update()
