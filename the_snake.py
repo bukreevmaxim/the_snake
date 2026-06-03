@@ -15,10 +15,10 @@ LEFT = (-1, 0)
 RIGHT = (1, 0)
 
 # Цвет фона - черный:
-BOARD_BACKGROUND_COLOR = (0, 0, 0)
+BOARD_BACKGROUND_COLOR = (181,184,177)
 
 # Цвет границы ячейки
-BORDER_COLOR = (93, 216, 228)
+BORDER_COLOR = (41,49,51)
 
 # Цвет яблока
 APPLE_COLOR = (255, 0, 0)
@@ -27,7 +27,7 @@ APPLE_COLOR = (255, 0, 0)
 SNAKE_COLOR = (0, 255, 0)
 
 # Скорость движения змейки:
-SPEED = 8
+SPEED = 5
 
 # Настройка игрового окна:
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
@@ -94,6 +94,8 @@ class Snake(GameObject):
         self.body_color = SNAKE_COLOR
         #координаты последнего сегмента перед его удалением.
         self.last = None
+        #скорость змейки
+        self.speed = SPEED
 
     def move(self):
         head_position = self.get_head_position()
@@ -168,16 +170,18 @@ def main():
     snake = Snake()
 
     while True:
-        clock.tick(SPEED)
+        clock.tick(snake.speed)
         handle_keys(snake)
         snake.update_direction()  # Применяем выбранное направление
-        # snake.move()
+        snake.move()
+
         if snake.get_head_position() == apple.position:
             snake.length += 1
+            snake.speed += 0.5
             apple.randomize_position()
         
-        snake.move()
-        
+       
+
         if snake.get_head_position() in snake.positions[1:]:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
