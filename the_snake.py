@@ -185,6 +185,7 @@ class Snake(GameObject):
         if len(self.positions) > self.length:
             self.last = self.positions[-1]
             del self.positions[-1]
+        
 
     def reset(self):
         """Сброс настроек змейки к начальному состоянию"""
@@ -197,7 +198,7 @@ class Snake(GameObject):
     # Метод draw класса Snake
     def draw(self):
         """Рисует змейку"""
-        for position in self.positions[:-1]:
+        for position in self.positions:
             rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
             pygame.draw.rect(screen, self.body_color, rect)
             pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
@@ -248,17 +249,17 @@ def main():
         handle_keys(snake)
         snake.update_direction()
         snake.move()
-
+        
         if snake.get_head_position() == apple.position:
             snake.length += 1
-            snake.speed += 0.3
+            snake.speed += 0.5
             apple.randomize_position()
 
         if snake.get_head_position() == poison.position:
             snake.length -= 1
-            snake.speed -= 0.3
+            snake.speed -= 0.5
             poison.randomize_position()
-
+            
         if snake.length < 1:
             game_over()
 
@@ -268,7 +269,9 @@ def main():
         if snake.get_head_position() in snake.positions[1:]:
             game_over()
 
-        if apple.randomize_position in snake.positions:
+        if apple.position in snake.positions:
+            apple.randomize_position()
+        if apple.randomize_position == stone.position:
             apple.randomize_position()
 
         screen.fill(BOARD_BACKGROUND_COLOR)
