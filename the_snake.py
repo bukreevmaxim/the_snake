@@ -63,13 +63,13 @@ def handle_keys(game_object):
             sys.exit()
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_UP and game_object.direction != DOWN:
-                game_object.next_direction = UP
+                game_object.update_direction(UP)
             elif event.key == pg.K_DOWN and game_object.direction != UP:
-                game_object.next_direction = DOWN
+                game_object.update_direction(DOWN)
             elif event.key == pg.K_LEFT and game_object.direction != RIGHT:
-                game_object.next_direction = LEFT
+                game_object.update_direction(LEFT)
             elif event.key == pg.K_RIGHT and game_object.direction != LEFT:
-                game_object.next_direction = RIGHT
+                game_object.update_direction(RIGHT)
             elif event.key == pg.K_ESCAPE:
                 pg.quit()
                 sys.exit()
@@ -188,15 +188,11 @@ class Snake(GameObject):
             head_y + dy * GRID_SIZE
         )
 
-        # Код для выхода за пределы экрана.ПЕРЕРАБОТАТЬЬ!!!!
-        if new_head[0] < 0:
-            new_head = (SCREEN_WIDTH - GRID_SIZE, new_head[1])
-        elif new_head[0] >= SCREEN_WIDTH:
-            new_head = (0, new_head[1])
-        if new_head[1] < 0:
-            new_head = (new_head[0], SCREEN_HEIGHT - GRID_SIZE)
-        elif new_head[1] >= SCREEN_HEIGHT:
-            new_head = (new_head[0], 0)
+        # Код для выхода за пределы экрана.
+        new_head = (
+            new_head[0] % SCREEN_WIDTH,
+            new_head[1] % SCREEN_HEIGHT
+        )
 
         # Новая голова добавляется в начало списка
         self.positions.insert(0, new_head)
@@ -204,7 +200,9 @@ class Snake(GameObject):
         # Последний элемент списка удаляется
         if len(self.positions) > self.length:
             self.last = self.positions[-1]
-            del self.positions[-1]
+            self.positions.pop(-1)
+        else:
+            self.last = None
 
     def reset(self):
         """Сброс настроек змейки к начальному состоянию"""
@@ -223,26 +221,14 @@ class Snake(GameObject):
             pg.draw.rect(screen, self.body_color, rect)
             pg.draw.rect(screen, BORDER_COLOR, rect, 1)
 
-        # Отрисовка головы змейки
-        head_rect = pg.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
-        pg.draw.rect(screen, self.body_color, head_rect)
-        pg.draw.rect(screen, BORDER_COLOR, head_rect, 1)
-
-        # Затирание последнего сегмента
-        if self.last:
-            last_rect = pg.Rect(self.last, (GRID_SIZE, GRID_SIZE))
-            pg.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
-
     def get_head_position(self):
         """Получаем позицию головы(первого элемента)"""
         return self.positions[0]
 
     # Метод обновления направления после нажатия на кнопку
-    def update_direction(self):
+    def update_direction(self, new_direction):
         """Обновляет направление движения змейки."""
-        if self.next_direction:
-            self.direction = self.next_direction
-            self.next_direction = None
+        self.direction = new_direction
 
 
 def main():
@@ -268,7 +254,6 @@ def main():
     while True:
         clock.tick(snake.speed)
         handle_keys(snake)
-        snake.update_direction()
         snake.move()
 
         if snake.get_head_position() == apple.position:
