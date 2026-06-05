@@ -1,7 +1,5 @@
 import pygame as pg
-
 import sys
-
 from random import randint
 # Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
