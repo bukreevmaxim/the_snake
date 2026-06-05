@@ -1,6 +1,8 @@
-import pygame as pg
 import sys
 from random import randint
+
+import pygame as pg
+
 # Константы для размеров поля и сетки:
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
 GRID_SIZE = 20
@@ -68,7 +70,7 @@ def handle_keys(game_object):
 
 
 class GameObject:
-    """Основной класс от которого наследуются все остальные предметы в игре"""
+    """Основной класс от которого наследуются все остальные предметы в игре."""
 
     def __init__(self, position=None, body_color=None):
         if position is None:
@@ -82,7 +84,7 @@ class GameObject:
             self.body_color = body_color
 
     def draw(self):
-        """Базовый метод отрисовки"""
+        """Базовый метод отрисовки."""
         fail_text = ('Метод draw не определён в классе')
         fail_class = self.__class__.__name__
         raise NotImplementedError(f'{fail_text} {fail_class}')
@@ -94,7 +96,7 @@ class GameObject:
         pg.draw.rect(screen, border_color, rect, 1)
 
     def _random_position(self, full_positions=None):
-        """Проверка на занятые"""
+        """Проверка на занятые."""
         while True:
             x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
             y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
@@ -105,7 +107,7 @@ class GameObject:
 
 
 class Apple(GameObject):
-    """Класс предемета яблоко"""
+    """Класс предмета яблоко."""
 
     def __init__(self, position=None, body_color=APPLE_COLOR):
         self.position = position
@@ -113,16 +115,16 @@ class Apple(GameObject):
         self.randomize_position()
 
     def randomize_position(self, full_positions=None):
-        """Выдаёт случайные координаты для спавна яблока"""
+        """Выдаёт случайные координаты для спавна яблока."""
         self._random_position(full_positions)
 
     def draw(self):
-        """Рисует яблоко в виде квадрата"""
+        """Рисует яблоко в виде квадрата."""
         self._draw_grid_cell(self.position, self.body_color)
 
 
 class Poison(Apple):
-    """Класс предмета уменьшающего скорость змейки"""
+    """Класс предмета уменьшающего скорость змейки."""
 
     def __init__(self, position=None, body_color=POISON_COLOR):
         self.position = position
@@ -130,16 +132,16 @@ class Poison(Apple):
         self.randomize_position()
 
     def randomize_position(self, full_positions=None):
-        """Выдаёт случайные координаты для спавна яда"""
+        """Выдаёт случайные координаты для спавна яда."""
         self._random_position(full_positions)
 
     def draw(self):
-        """Рисует яд в виде квадрата"""
+        """Рисует яд в виде квадрата."""
         self._draw_grid_cell(self.position, self.body_color)
 
 
 class Stone(Apple):
-    """Класс предмета камень"""
+    """Класс предмета камень."""
 
     def __init__(self, position=None, body_color=STONE_COLOR):
         self.position = position
@@ -147,11 +149,11 @@ class Stone(Apple):
         self.randomize_position()
 
     def randomize_position(self, full_positions=None):
-        """Выдаёт случайные координаты для спавна камня"""
+        """Выдаёт случайные координаты для спавна камня."""
         self._random_position(full_positions)
 
     def draw(self):
-        """Рисует камень в виде квадрата"""
+        """Рисует камень в виде квадрата."""
         self._draw_grid_cell(self.position, self.body_color)
 
 
@@ -171,7 +173,7 @@ class Snake(GameObject):
         self.next_direction = None
 
     def move(self):
-        """Определяем движение змейки"""
+        """Определяем движение змейки."""
         head_position = self.get_head_position()
         dx, dy = self.direction
         head_x, head_y = head_position
@@ -198,26 +200,26 @@ class Snake(GameObject):
             self.last = None
 
     def reset(self):
-        """Сброс настроек змейки к начальному состоянию"""
+        """Сброс настроек змейки к начальному состоянию."""
         self.length = 1
         self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
         self.direction = RIGHT
         self.next_direction = None
         self.last = None
-        SPEED = 5
+        fps = 5
         screen.fill(BOARD_BACKGROUND_COLOR)
-        return SPEED
+        return fps
 
     # Метод draw класса Snake
     def draw(self):
-        """Рисует змейку"""
+        """Рисует змейку."""
         for position in self.positions:
             rect = (pg.Rect(position, (GRID_SIZE, GRID_SIZE)))
             pg.draw.rect(screen, self.body_color, rect)
             pg.draw.rect(screen, BORDER_COLOR, rect, 1)
 
     def get_head_position(self):
-        """Получаем позицию головы(первого элемента)"""
+        """Получаем позицию головы(первого элемента)."""
         return self.positions[0]
 
     # Метод обновления направления после нажатия на кнопку
@@ -239,10 +241,10 @@ def main():
     stone = Stone()
     poison = Poison()
     # Скорость игры:
-    SPEED = 5
+    fps = 5
 
     def get_full_positions():
-        """Собирает все занятые клетки (змейка + все предметы)"""
+        """Собирает все занятые клетки (змейка + все предметы)."""
         occupied = set(snake.positions)
         occupied.add(apple.position)
         occupied.add(stone.position)
@@ -250,26 +252,26 @@ def main():
         return occupied
 
     def game_over():
-        nonlocal SPEED
-        SPEED = snake.reset()
+        nonlocal fps
+        fps = snake.reset()
         occupied = get_full_positions()
         apple.randomize_position(occupied)
         stone.randomize_position(occupied)
         poison.randomize_position(occupied)
 
     while True:
-        clock.tick(SPEED)
+        clock.tick(fps)
         handle_keys(snake)
         snake.move()
 
         if snake.get_head_position() == apple.position:
             snake.length += 1
-            SPEED += 0.5
+            fps += 0.5
             apple.randomize_position(get_full_positions())
 
         elif snake.get_head_position() == poison.position:
-            SPEED -= 0.5
-            if SPEED < 3:
+            fps -= 0.5
+            if fps < 3:
                 game_over()
             else:
                 poison.randomize_position(get_full_positions())
