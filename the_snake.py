@@ -34,12 +34,6 @@ STONE_COLOR = (0, 0, 0)
 # Цвет яда
 POISON_COLOR = (0, 0, 255)
 
-# Цвет по умолчанию
-DEFAULT_COLOR = (168, 228, 160)
-
-# Скорость движения змейки:
-SPEED = 5
-
 # Настройка игрового окна:
 screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
 
@@ -85,14 +79,14 @@ class GameObject:
             self.position = position
 
         if body_color is None:
-            self.body_color = DEFAULT_COLOR
+            self.body_color = SNAKE_COLOR
         else:
             self.body_color = body_color
 
     def draw(self):
         """Базовый метод отрисовки"""
-        fail_class = self.__class__.__name__
         fail_text = ('Метод draw не определён в классе')
+        fail_class = self.__class__.__name__
         raise NotImplementedError(f'{fail_text} {fail_class}')
 
     def _draw_grid_cell(self, position, fill_color, border_color=BORDER_COLOR):
@@ -101,23 +95,28 @@ class GameObject:
         pg.draw.rect(screen, fill_color, rect)
         pg.draw.rect(screen, border_color, rect, 1)
 
-    def _random_position(self):
-        """ЗДЕСЬ ДОЛЖНА БЫТЬ ПРОВЕРКА НА ОТСУТСТВИЕ ЗАНЯТЫХ КЛЕТОК"""
-        x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
-        y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
-        self.position = (x, y)
+    def _random_position(self, full_positions=None):
+        """Проверка на занятые"""
+        while True:
+            x = randint(0, GRID_WIDTH - 1) * GRID_SIZE
+            y = randint(0, GRID_HEIGHT - 1) * GRID_SIZE
+            position = (x, y)
+            if full_positions is None or position not in full_positions:
+                self.position = position
+                break
 
 
 class Apple(GameObject):
     """Класс предемета яблоко"""
 
-    def __init__(self, body_color=APPLE_COLOR):
+    def __init__(self, position=None, body_color=APPLE_COLOR):
+        self.position = position
         self.body_color = body_color
         self.randomize_position()
 
-    def randomize_position(self):
+    def randomize_position(self, full_positions=None):
         """Выдаёт случайные координаты для спавна яблока"""
-        self._random_position()
+        self._random_position(full_positions)
 
     def draw(self):
         """Рисует яблоко в виде квадрата"""
@@ -125,15 +124,16 @@ class Apple(GameObject):
 
 
 class Poison(Apple):
-    """Класс предмета уменьшающего скорость и размер змейки при поедании"""
+    """Класс предмета уменьшающего скорость змейки"""
 
-    def __init__(self, body_color=POISON_COLOR):
+    def __init__(self, position=None, body_color=POISON_COLOR):
+        self.position = position
         self.body_color = body_color
         self.randomize_position()
 
-    def randomize_position(self):
+    def randomize_position(self, full_positions=None):
         """Выдаёт случайные координаты для спавна яда"""
-        self._random_position()
+        self._random_position(full_positions)
 
     def draw(self):
         """Рисует яд в виде квадрата"""
@@ -143,13 +143,14 @@ class Poison(Apple):
 class Stone(Apple):
     """Класс предмета камень"""
 
-    def __init__(self, body_color=STONE_COLOR):
+    def __init__(self, position=None, body_color=STONE_COLOR):
+        self.position = position
         self.body_color = body_color
         self.randomize_position()
 
-    def randomize_position(self):
+    def randomize_position(self, full_positions=None):
         """Выдаёт случайные координаты для спавна камня"""
-        self._random_position()
+        self._random_position(full_positions)
 
     def draw(self):
         """Рисует камень в виде квадрата"""
@@ -170,12 +171,6 @@ class Snake(GameObject):
         self.direction = RIGHT
         # следующее направление, выбранное пользователем;
         self.next_direction = None
-        # цвет змейки
-        self.body_color = SNAKE_COLOR
-        # координаты последнего сегмента перед его удалением.
-        self.last = None
-        # скорость змейки
-        self.speed = SPEED
 
     def move(self):
         """Определяем движение змейки"""
@@ -211,7 +206,9 @@ class Snake(GameObject):
         self.direction = RIGHT
         self.next_direction = None
         self.last = None
+        SPEED = 5
         screen.fill(BOARD_BACKGROUND_COLOR)
+        return SPEED
 
     # Метод draw класса Snake
     def draw(self):
@@ -243,29 +240,41 @@ def main():
     apple = Apple()
     stone = Stone()
     poison = Poison()
+    # Скорость игры:
+    SPEED = 5
+
+    def get_full_positions():
+        """Собирает все занятые клетки (змейка + все предметы)"""
+        occupied = set(snake.positions)
+        occupied.add(apple.position)
+        occupied.add(stone.position)
+        occupied.add(poison.position)
+        return occupied
 
     def game_over():
-        snake.reset()
-        apple.randomize_position()
-        stone.randomize_position()
-        poison.randomize_position()
-        snake.speed = SPEED
+        nonlocal SPEED
+        SPEED = snake.reset()
+        occupied = get_full_positions()
+        apple.randomize_position(occupied)
+        stone.randomize_position(occupied)
+        poison.randomize_position(occupied)
 
     while True:
-        clock.tick(snake.speed)
+        clock.tick(SPEED)
         handle_keys(snake)
         snake.move()
 
         if snake.get_head_position() == apple.position:
             snake.length += 1
-            snake.speed += 0.5
-            apple.randomize_position()
+            SPEED += 0.5
+            apple.randomize_position(get_full_positions())
 
         elif snake.get_head_position() == poison.position:
-            snake.speed -= 0.5
-            if snake.speed < 3:
+            SPEED -= 0.5
+            if SPEED < 3:
                 game_over()
-            poison.randomize_position()
+            else:
+                poison.randomize_position(get_full_positions())
 
         elif snake.get_head_position() == stone.position:
             game_over()
@@ -276,7 +285,6 @@ def main():
         if snake.get_head_position() in snake.positions[4:]:
             game_over()
 
-        # Нужно экран поменять на занятые клетки
         screen.fill(BOARD_BACKGROUND_COLOR)
         stone.draw()
         apple.draw()
