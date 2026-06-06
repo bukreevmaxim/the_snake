@@ -264,6 +264,7 @@ def main():
 
         # Пересоздаём яд
         poison.randomize_position(occupied)
+        occupied.add(poison.position)
 
         apple.draw()
         stone.draw()
