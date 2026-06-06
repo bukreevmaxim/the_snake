@@ -166,8 +166,7 @@ class Snake(GameObject):
 
         # Последний элемент списка удаляется
         if len(self.positions) > self.length:
-            self.last = self.positions[-1]
-            self.positions.pop()
+            self.last = self.positions.pop()
         else:
             self.last = None
 
@@ -216,12 +215,18 @@ def main():
     snake.draw()
 
     # Получаем начальные занятые позиции (только змейка)
-    initial_occupied = set(snake.positions)
+    occupied = set(snake.positions)
 
-    # Создаём объекты, передавая занятые позиции
-    apple = Apple(initial_occupied)
-    stone = Apple(initial_occupied, body_color=STONE_COLOR)
-    poison = Apple(initial_occupied, body_color=POISON_COLOR)
+    # Создаём яблоко
+    apple = Apple(occupied)
+    occupied.add(apple.position)
+
+    # Создаём камень
+    stone = Apple(occupied, body_color=STONE_COLOR)
+    occupied.add(stone.position)
+
+    # Создаём яд
+    poison = Apple(occupied, body_color=POISON_COLOR)
 
     # Отрисовываем начальные объекты
     apple.draw()
@@ -245,9 +250,18 @@ def main():
         snake.reset()
         screen.fill(BOARD_BACKGROUND_COLOR)
 
-        occupied = get_full_positions()
+        # Начинаем с позиций змейки
+        occupied = set(snake.positions)
+
+        # Пересоздаём яблоко
         apple.randomize_position(occupied)
+        occupied.add(apple.position)
+
+        # Пересоздаём камень
         stone.randomize_position(occupied)
+        occupied.add(stone.position)
+
+        # Пересоздаём яд
         poison.randomize_position(occupied)
 
         apple.draw()
