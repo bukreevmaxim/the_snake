@@ -227,6 +227,7 @@ def main():
 
     # Создаём яд
     poison = Apple(occupied, body_color=POISON_COLOR)
+    occupied.add(poison.position)
 
     # Отрисовываем начальные объекты
     apple.draw()
